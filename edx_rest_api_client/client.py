@@ -1,20 +1,15 @@
-import datetime
-import json
 import os
 import socket
 
 import requests
 import requests.utils
 
-from edx_django_utils.cache import TieredCache
-from edx_django_utils.monitoring import set_custom_attribute
+# from edx_django_utils.cache import TieredCache
+# from edx_django_utils.monitoring import set_custom_attribute
 from edx_rest_api_client.auth import SuppliedJwtAuth
+from edx_rest_api_client.cached_token import CachedToken
+
 from edx_rest_api_client.__version__ import __version__
-
-
-# When caching tokens, use this value to err on expiring tokens a little early so they are
-# sure to be valid at the time they are used.
-ACCESS_TOKEN_EXPIRED_THRESHOLD_SECONDS = 5
 
 # How long should we wait to connect to the auth service.
 # https://requests.readthedocs.io/en/master/user/advanced/#timeouts
@@ -46,135 +41,6 @@ def user_agent():
 
 
 USER_AGENT = user_agent()
-
-
-def _get_oauth_url(url):
-    """
-    Returns the complete url for the oauth2 endpoint.
-
-    Args:
-        url (str): base url of the LMS oauth endpoint, which can optionally include some or all of the path
-            ``/oauth2/access_token``. Common example settings that would work for ``url`` would include:
-                LMS_BASE_URL = 'http://edx.devstack.lms:18000'
-                BACKEND_SERVICE_EDX_OAUTH2_PROVIDER_URL = 'http://edx.devstack.lms:18000/oauth2'
-
-    """
-    stripped_url = url.rstrip('/')
-    if stripped_url.endswith('/access_token'):
-        return url
-
-    if stripped_url.endswith('/oauth2'):
-        return stripped_url + '/access_token'
-
-    return stripped_url + '/oauth2/access_token'
-
-
-def get_oauth_access_token(url, client_id, client_secret, token_type='jwt', grant_type='client_credentials',
-                           refresh_token=None,
-                           timeout=(REQUEST_CONNECT_TIMEOUT, REQUEST_READ_TIMEOUT)):
-    """ Retrieves OAuth 2.0 access token using the given grant type.
-
-    Args:
-        url (str): Oauth2 access token endpoint, optionally including part of the path.
-        client_id (str): client ID
-        client_secret (str): client secret
-    Kwargs:
-        token_type (str): Type of token to return. Options include bearer and jwt.
-        grant_type (str): One of 'client_credentials' or 'refresh_token'
-        refresh_token (str): The previous access token (for grant_type=refresh_token)
-
-    Raises:
-        requests.RequestException if there is a problem retrieving the access token.
-
-    Returns:
-        tuple: Tuple containing (access token string, expiration datetime).
-
-    """
-    now = datetime.datetime.utcnow()
-    data = {
-        'grant_type': grant_type,
-        'client_id': client_id,
-        'client_secret': client_secret,
-        'token_type': token_type,
-    }
-    if refresh_token:
-        data['refresh_token'] = refresh_token
-    else:
-        assert grant_type != 'refresh_token', "refresh_token parameter required"
-
-    response = requests.post(
-        _get_oauth_url(url),
-        data=data,
-        headers={
-            'User-Agent': USER_AGENT,
-        },
-        timeout=timeout
-    )
-
-    response.raise_for_status()  # Raise an exception for bad status codes.
-    try:
-        data = response.json()
-        access_token = data['access_token']
-        expires_in = data['expires_in']
-    except (KeyError, json.decoder.JSONDecodeError) as json_error:
-        raise requests.RequestException(response=response) from json_error
-
-    expires_at = now + datetime.timedelta(seconds=expires_in)
-
-    return access_token, expires_at
-
-
-def get_and_cache_oauth_access_token(url, client_id, client_secret, token_type='jwt', grant_type='client_credentials',
-                                     refresh_token=None,
-                                     timeout=(REQUEST_CONNECT_TIMEOUT, REQUEST_READ_TIMEOUT)):
-    """ Retrieves a possibly cached OAuth 2.0 access token using the given grant type.
-
-    See ``get_oauth_access_token`` for usage details.
-
-    First retrieves the access token from the cache and ensures it has not expired. If
-    the access token either wasn't found in the cache, or was expired, retrieves a new
-    access token and caches it for the lifetime of the token.
-
-    Note: Consider tokens to be expired ACCESS_TOKEN_EXPIRED_THRESHOLD_SECONDS early
-    to ensure the token won't expire while it is in use.
-
-    Returns:
-        tuple: Tuple containing (access token string, expiration datetime).
-
-    """
-    oauth_url = _get_oauth_url(url)
-    cache_key = 'edx_rest_api_client.access_token.{}.{}.{}.{}'.format(
-        token_type,
-        grant_type,
-        client_id,
-        oauth_url,
-    )
-    cached_response = TieredCache.get_cached_response(cache_key)
-
-    # Attempt to get an unexpired cached access token
-    if cached_response.is_found:
-        _, expiration = cached_response.value
-        # Double-check the token hasn't already expired as a safety net.
-        adjusted_expiration = expiration - datetime.timedelta(seconds=ACCESS_TOKEN_EXPIRED_THRESHOLD_SECONDS)
-        if datetime.datetime.utcnow() < adjusted_expiration:
-            return cached_response.value
-
-    # Get a new access token if no unexpired access token was found in the cache.
-    oauth_access_token_response = get_oauth_access_token(
-        oauth_url,
-        client_id,
-        client_secret,
-        grant_type=grant_type,
-        refresh_token=refresh_token,
-        timeout=timeout,
-    )
-
-    # Cache the new access token with an expiration matching the lifetime of the token.
-    _, expiration = oauth_access_token_response
-    expires_in = (expiration - datetime.datetime.utcnow()).seconds - ACCESS_TOKEN_EXPIRED_THRESHOLD_SECONDS
-    TieredCache.set_all_tiers(cache_key, oauth_access_token_response, expires_in)
-
-    return oauth_access_token_response
 
 
 class OAuthAPIClient(requests.Session):
@@ -235,6 +101,8 @@ class OAuthAPIClient(requests.Session):
         self._client_secret = client_secret
         self._timeout = timeout
 
+        self.access_token = None
+
     def _ensure_authentication(self):
         """
         Ensures that the Session's auth.token is set with an unexpired token.
@@ -243,15 +111,20 @@ class OAuthAPIClient(requests.Session):
             requests.RequestException if there is a problem retrieving the access token.
 
         """
-        oauth_url = self._base_url if not self.oauth_uri else self._base_url + self.oauth_uri
 
-        oauth_access_token_response = get_and_cache_oauth_access_token(
-            oauth_url,
-            self._client_id,
-            self._client_secret,
-            grant_type='client_credentials',
-            timeout=self._timeout,
-        )
+        if not self.access_token:
+            oauth_url = self._base_url if not self.oauth_uri else self._base_url + self.oauth_uri
+
+            self.access_token = CachedToken(
+                oauth_url,
+                self._client_id,
+                self._client_secret,
+                grant_type='client_credentials',
+                user_agent=USER_AGENT,
+                timeout=self._timeout,
+            )
+
+        oauth_access_token_response = self.access_token.get_and_cache_oauth_access_token()
 
         self.auth.token, _ = oauth_access_token_response
 
@@ -277,6 +150,5 @@ class OAuthAPIClient(requests.Session):
         instead use Session.get or Session.post.
 
         """
-        set_custom_attribute('api_client', 'OAuthAPIClient')
         self._ensure_authentication()
         return super().request(method, url, **kwargs)

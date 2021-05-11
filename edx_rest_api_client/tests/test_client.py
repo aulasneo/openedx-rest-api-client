@@ -6,7 +6,6 @@ import ddt
 import requests
 import responses
 
-from edx_django_utils.cache import TieredCache
 from freezegun import freeze_time
 
 from edx_rest_api_client.client import OAuthAPIClient
@@ -32,10 +31,6 @@ class OAuthAPIClientTests(AuthenticationTestMixin, TestCase):
     base_url = 'http://testing.test'
     client_id = 'test'
     client_secret = 'secret'
-
-    def setUp(self):
-        super().setUp()
-        TieredCache.dangerous_clear_all_tiers()
 
     @responses.activate
     @ddt.data(
