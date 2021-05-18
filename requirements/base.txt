@@ -6,40 +6,21 @@
 #
 certifi==2020.12.5
     # via requests
+cffi==1.14.5
+    # via cryptography
 chardet==4.0.0
     # via requests
-django-crum==0.7.9
-    # via edx-django-utils
-django-waffle==2.1.0
-    # via edx-django-utils
-django==2.2.21
-    # via
-    #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
-    #   django-crum
-    #   edx-django-utils
-edx-django-utils==4.0.0
-    # via -r requirements/base.in
+cryptography==3.4.7
+    # via pyjwt
 idna==2.10
     # via requests
-newrelic==6.2.0.156
-    # via edx-django-utils
-pbr==5.6.0
-    # via stevedore
-psutil==5.8.0
-    # via edx-django-utils
-pyjwt==2.1.0
-    # via -r requirements/base.in
-pytz==2021.1
-    # via django
-requests==2.25.1
+pycparser==2.20
+    # via cffi
+pyjwt==1.7.1
     # via
+    #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/base.in
-    #   slumber
-slumber==0.7.1
+requests==2.25.1
     # via -r requirements/base.in
-sqlparse==0.4.1
-    # via django
-stevedore==3.3.0
-    # via edx-django-utils
 urllib3==1.26.4
     # via requests
