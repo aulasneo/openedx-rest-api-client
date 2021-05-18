@@ -6,7 +6,7 @@ import requests.utils
 
 # from edx_django_utils.cache import TieredCache
 # from edx_django_utils.monitoring import set_custom_attribute
-from edx_rest_api_client.auth import SuppliedJwtAuth
+from edx_rest_api_client.auth import SuppliedJwtAuth, BearerAuth
 from edx_rest_api_client.cached_token import CachedToken
 
 from edx_rest_api_client.__version__ import __version__
@@ -79,6 +79,7 @@ class OAuthAPIClient(requests.Session):
 
     def __init__(self, base_url, client_id, client_secret,
                  timeout=(REQUEST_CONNECT_TIMEOUT, REQUEST_READ_TIMEOUT),
+                 token_type='jwt',
                  **kwargs):
         """
         Args:
@@ -94,14 +95,21 @@ class OAuthAPIClient(requests.Session):
         """
         super().__init__(**kwargs)
         self.headers['user-agent'] = USER_AGENT
-        self.auth = SuppliedJwtAuth(None)
+
+        if token_type == 'jwt':
+            self.auth = SuppliedJwtAuth(None)
+        elif token_type == 'bearer':
+            self.auth = BearerAuth(None)
+        else:
+            raise ValueError('Invalid token type {} (must be "jwt" or "bearer")'.format(token_type))
 
         self._base_url = base_url.rstrip('/')
         self._client_id = client_id
         self._client_secret = client_secret
         self._timeout = timeout
+        self._token_type = token_type
 
-        self.access_token = None
+        self._access_token = None
 
     def _ensure_authentication(self):
         """
@@ -112,19 +120,20 @@ class OAuthAPIClient(requests.Session):
 
         """
 
-        if not self.access_token:
+        if not self._access_token:
             oauth_url = self._base_url if not self.oauth_uri else self._base_url + self.oauth_uri
 
-            self.access_token = CachedToken(
+            self._access_token = CachedToken(
                 oauth_url,
                 self._client_id,
                 self._client_secret,
                 grant_type='client_credentials',
                 user_agent=USER_AGENT,
                 timeout=self._timeout,
+                token_type=self._token_type
             )
 
-        oauth_access_token_response = self.access_token.get_and_cache_oauth_access_token()
+        oauth_access_token_response = self._access_token.get_and_cache_oauth_access_token()
 
         self.auth.token, _ = oauth_access_token_response
 

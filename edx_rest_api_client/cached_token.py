@@ -146,6 +146,7 @@ class CachedToken:
             refresh_token=self.refresh_token,
             user_agent=self.user_agent,
             timeout=self.timeout,
+            token_type=self.token_type
         )
 
         # Cache the new access token with an expiration matching the lifetime of the token.
