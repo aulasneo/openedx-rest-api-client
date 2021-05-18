@@ -4,8 +4,6 @@ import socket
 import requests
 import requests.utils
 
-# from edx_django_utils.cache import TieredCache
-# from edx_django_utils.monitoring import set_custom_attribute
 from edx_rest_api_client.auth import SuppliedJwtAuth, BearerAuth
 from edx_rest_api_client.cached_token import CachedToken
 
@@ -43,7 +41,7 @@ def user_agent():
 USER_AGENT = user_agent()
 
 
-class OAuthAPIClient(requests.Session):
+class OAuthAPISession(requests.Session):
     """
     A :class:`requests.Session` that automatically authenticates against edX's preferred
     authentication method, given a client id and client secret. The underlying implementation
@@ -51,7 +49,7 @@ class OAuthAPIClient(requests.Session):
 
     Usage example::
 
-        client = OAuthAPIClient(
+        client = OAuthAPISession(
             settings.BACKEND_SERVICE_EDX_OAUTH2_PROVIDER_URL,
             settings.BACKEND_SERVICE_EDX_OAUTH2_KEY,
             settings.BACKEND_SERVICE_EDX_OAUTH2_SECRET,

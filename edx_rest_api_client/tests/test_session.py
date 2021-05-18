@@ -8,7 +8,7 @@ import responses
 
 from freezegun import freeze_time
 
-from edx_rest_api_client.client import OAuthAPIClient
+from edx_rest_api_client.session import OAuthAPISession
 from edx_rest_api_client.tests.mixins import AuthenticationTestMixin
 
 URL = 'http://example.com/api/v2'
@@ -26,7 +26,7 @@ JWT = 'abc.123.doremi'
 @ddt.ddt
 class OAuthAPIClientTests(AuthenticationTestMixin, TestCase):
     """
-    Tests for OAuthAPIClient
+    Tests for OAuthAPISession
     """
     base_url = 'http://testing.test'
     client_id = 'test'
@@ -46,7 +46,7 @@ class OAuthAPIClientTests(AuthenticationTestMixin, TestCase):
         """
         Test that the JWT token is automatically set
         """
-        client_session = OAuthAPIClient(client_base_url, self.client_id, self.client_secret)
+        client_session = OAuthAPISession(client_base_url, self.client_id, self.client_secret)
         client_session.oauth_uri = custom_oauth_uri
 
         self._mock_auth_api(expected_oauth_url, 200, {'access_token': 'abcd', 'expires_in': 60})
@@ -75,7 +75,7 @@ class OAuthAPIClientTests(AuthenticationTestMixin, TestCase):
             content_type='application/json',
         )
 
-        client_session = OAuthAPIClient(self.base_url, self.client_id, self.client_secret)
+        client_session = OAuthAPISession(self.base_url, self.client_id, self.client_secret)
         self._mock_auth_api(self.base_url + '/endpoint', 200, {'status': 'ok'})
         response = client_session.post(self.base_url + '/endpoint', data={'test': 'ok'})
         first_call_datetime = datetime.datetime.utcnow()
@@ -91,12 +91,12 @@ class OAuthAPIClientTests(AuthenticationTestMixin, TestCase):
             response = client_session.post(self.base_url + '/endpoint', data={'test': 'ok'})
             self.assertEqual(client_session.auth.token, 'cred2')
 
-    @mock.patch('edx_rest_api_client.client.requests.post')
+    @mock.patch('edx_rest_api_client.session.requests.post')
     def test_access_token_request_timeout_wiring2(self, mock_access_token_post):
         mock_access_token_post.return_value.json.return_value = {'access_token': 'token', 'expires_in': 1000}
 
         timeout_override = (6.1, 2)
-        client = OAuthAPIClient(self.base_url, self.client_id, self.client_secret, timeout=timeout_override)
+        client = OAuthAPISession(self.base_url, self.client_id, self.client_secret, timeout=timeout_override)
         client._ensure_authentication()  # pylint: disable=protected-access
 
         assert mock_access_token_post.call_args.kwargs['timeout'] == timeout_override
@@ -107,7 +107,7 @@ class OAuthAPIClientTests(AuthenticationTestMixin, TestCase):
                       self.base_url + '/oauth2/access_token',
                       status=200,
                       body="Not JSON")
-        client = OAuthAPIClient(self.base_url, self.client_id, self.client_secret)
+        client = OAuthAPISession(self.base_url, self.client_id, self.client_secret)
 
         with self.assertRaises(requests.RequestException):
             client._ensure_authentication()  # pylint: disable=protected-access
@@ -118,7 +118,7 @@ class OAuthAPIClientTests(AuthenticationTestMixin, TestCase):
                       self.base_url + '/oauth2/access_token',
                       status=500,
                       json={})
-        client = OAuthAPIClient(self.base_url, self.client_id, self.client_secret)
+        client = OAuthAPISession(self.base_url, self.client_id, self.client_secret)
         with self.assertRaises(requests.HTTPError):
             client._ensure_authentication()  # pylint: disable=protected-access
 
@@ -126,6 +126,6 @@ class OAuthAPIClientTests(AuthenticationTestMixin, TestCase):
     def test_get_jwt_access_token(self):
         token = 'abcd'
         self._mock_auth_api(self.base_url + '/oauth2/access_token', 200, {'access_token': token, 'expires_in': 60})
-        client = OAuthAPIClient(self.base_url, self.client_id, self.client_secret)
+        client = OAuthAPISession(self.base_url, self.client_id, self.client_secret)
         access_token = client.get_jwt_access_token()
         self.assertEqual(access_token, token)
