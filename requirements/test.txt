@@ -16,10 +16,6 @@ certifi==2020.12.5
     # via
     #   -r requirements/base.txt
     #   requests
-cffi==1.14.5
-    # via
-    #   -r requirements/base.txt
-    #   cryptography
 chardet==4.0.0
     # via
     #   -r requirements/base.txt
@@ -38,12 +34,9 @@ colorama==0.4.4
     # via twine
 coverage[toml]==5.5
     # via pytest-cov
-cryptography==3.4.7
-    # via
-    #   -r requirements/base.txt
-    #   pyjwt
 ddt==1.4.2
     # via -r requirements/test.in
+django==2.2.23
     # via
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   code-annotations
@@ -96,16 +89,8 @@ py==1.10.0
     # via pytest
 pycodestyle==2.7.0
     # via -r requirements/test.in
-pycparser==2.20
-    # via
-    #   -r requirements/base.txt
-    #   cffi
 pygments==2.9.0
     # via readme-renderer
-pyjwt[crypto]==1.7.1
-    # via
-    #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
-    #   -r requirements/base.txt
 pylint-celery==0.3
     # via edx-lint
 pylint-django==2.4.4

@@ -26,10 +26,6 @@ certifi==2020.12.5
     #   -r requirements/ci.txt
     #   -r requirements/test.txt
     #   requests
-cffi==1.14.5
-    # via
-    #   -r requirements/test.txt
-    #   cryptography
 chardet==4.0.0
     # via
     #   -r requirements/ci.txt
@@ -64,10 +60,6 @@ coverage[toml]==5.5
     #   -r requirements/test.txt
     #   codecov
     #   pytest-cov
-cryptography==3.4.7
-    # via
-    #   -r requirements/test.txt
-    #   pyjwt
 ddt==1.4.2
     # via -r requirements/test.txt
 distlib==0.3.1
@@ -169,18 +161,10 @@ py==1.10.0
     #   tox
 pycodestyle==2.7.0
     # via -r requirements/test.txt
-pycparser==2.20
-    # via
-    #   -r requirements/test.txt
-    #   cffi
 pygments==2.9.0
     # via
     #   -r requirements/test.txt
     #   readme-renderer
-pyjwt[crypto]==1.7.1
-    # via
-    #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
-    #   -r requirements/test.txt
 pylint-celery==0.3
     # via
     #   -r requirements/test.txt
