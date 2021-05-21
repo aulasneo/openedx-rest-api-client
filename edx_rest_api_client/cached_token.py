@@ -35,10 +35,12 @@ def _get_oauth_url(url):
     return stripped_url + '/oauth2/access_token'
 
 
-def get_oauth_access_token(url, client_id, client_secret, token_type='jwt', grant_type='client_credentials',
+def get_oauth_access_token(url: str, client_id: str, client_secret: str,
+                           token_type: str = 'jwt',
+                           grant_type: str = 'client_credentials',
                            refresh_token=None,
                            user_agent=None,
-                           timeout=(REQUEST_CONNECT_TIMEOUT, REQUEST_READ_TIMEOUT)):
+                           timeout=(REQUEST_CONNECT_TIMEOUT, REQUEST_READ_TIMEOUT)) -> (str, datetime.datetime):
     """ Retrieves OAuth 2.0 access token using the given grant type.
 
     Args:
@@ -48,6 +50,7 @@ def get_oauth_access_token(url, client_id, client_secret, token_type='jwt', gran
         token_type (str): Type of token to return. Options include bearer and jwt.
         grant_type (str): One of 'client_credentials' or 'refresh_token'
         refresh_token (str): The previous access token (for grant_type=refresh_token)
+        user_agent (str): identifies the agent in the HTTP header
         timeout (tuple(float,float)): Requests timeout parameter for access token requests.
             (https://requests.readthedocs.io/en/master/user/advanced/#timeouts)
 
@@ -78,8 +81,8 @@ def get_oauth_access_token(url, client_id, client_secret, token_type='jwt', gran
         },
         timeout=timeout
     )
-
     response.raise_for_status()  # Raise an exception for bad status codes.
+
     try:
         data = response.json()
         access_token = data['access_token']

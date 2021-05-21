@@ -11,6 +11,17 @@ chardet==4.0.0
 idna==2.10
     # via requests
 requests==2.25.1
+    # via
+    #   -r requirements/base.in
+    #   responses
+responses==0.13.3
     # via -r requirements/base.in
+six==1.16.0
+    # via responses
 urllib3==1.26.4
-    # via requests
+    # via
+    #   requests
+    #   responses
+
+# The following packages are considered to be unsafe in a requirements file:
+# setuptools

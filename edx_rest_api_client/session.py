@@ -49,12 +49,12 @@ class OAuthAPISession(requests.Session):
 
     Usage example::
 
-        client = OAuthAPISession(
+        session = OAuthAPISession(
             settings.BACKEND_SERVICE_EDX_OAUTH2_PROVIDER_URL,
             settings.BACKEND_SERVICE_EDX_OAUTH2_KEY,
             settings.BACKEND_SERVICE_EDX_OAUTH2_SECRET,
         )
-        response = client.get(
+        response = session.get(
             settings.EXAMPLE_API_SERVICE_URL + 'example/',
             params={'username': user.username},
             timeout=(3.1, 0.5), # Always set a timeout.
@@ -65,9 +65,6 @@ class OAuthAPISession(requests.Session):
     For more usage details, see documentation of the :class:`requests.Session` object:
     - https://requests.readthedocs.io/en/master/user/advanced/#session-objects
 
-    Note: Requires Django + Middleware for TieredCache, used for caching the access token.
-    See https://github.com/edx/edx-django-utils/blob/master/edx_django_utils/cache/README.rst#tieredcache
-
     """
 
     # If the oauth_uri is set, it will be appended to the base_url.
@@ -75,10 +72,13 @@ class OAuthAPISession(requests.Session):
     # This was needed when using the client to connect with a third-party (rather than LMS).
     oauth_uri = None
 
-    def __init__(self, base_url, client_id, client_secret,
-                 timeout=(REQUEST_CONNECT_TIMEOUT, REQUEST_READ_TIMEOUT),
-                 token_type='jwt',
-                 **kwargs):
+    def __init__(self,
+                 base_url: str,
+                 client_id: str,
+                 client_secret: str,
+                 timeout: (float, float) = (REQUEST_CONNECT_TIMEOUT, REQUEST_READ_TIMEOUT),
+                 bearer: bool = False,
+                 **kwargs) -> None:
         """
         Args:
             base_url (str): base url of the LMS oauth endpoint, which can optionally include the path `/oauth2`.
@@ -93,23 +93,26 @@ class OAuthAPISession(requests.Session):
         """
         super().__init__(**kwargs)
         self.headers['user-agent'] = USER_AGENT
+        self.headers['Content-Type'] = "application/JSON"
 
-        if token_type == 'jwt':
-            self.auth = SuppliedJwtAuth(None)
-        elif token_type == 'bearer':
+        if bearer:
             self.auth = BearerAuth(None)
+            self._token_type = 'bearer'
         else:
-            raise ValueError('Invalid token type {} (must be "jwt" or "bearer")'.format(token_type))
+            self.auth = SuppliedJwtAuth(None)
+            self._token_type = 'jwt'
 
         self._base_url = base_url.rstrip('/')
         self._client_id = client_id
         self._client_secret = client_secret
         self._timeout = timeout
-        self._token_type = token_type
 
         self._access_token = None
 
-    def _ensure_authentication(self):
+    def get_base_url(self) -> str:
+        return self._base_url
+
+    def _ensure_authentication(self) -> None:
         """
         Ensures that the Session's auth.token is set with an unexpired token.
 
