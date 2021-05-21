@@ -1,11 +1,11 @@
 import datetime
 from unittest import TestCase
 
-import jwt
+# import jwt
 import requests
 import responses
 
-from edx_rest_api_client import auth
+from openedx_rest_api_client import auth
 
 CURRENT_TIME = datetime.datetime(2015, 7, 2, 10, 10, 10)
 
@@ -36,10 +36,15 @@ class SuppliedJwtAuthTests(TestCase):
     @responses.activate
     def test_headers(self):
         """Verify that the token is added to the Authorization headers."""
-        payload = {
-            'key1': 'value1',
-            'key2': 'vαlue2'
-        }
-        token = jwt.encode(payload, self.signing_key)
+        # payload = {
+        #     'key1': 'value1',
+        #     'key2': 'vαlue2'
+        # }
+        # token = jwt.encode(payload, self.signing_key)
+
+        # The key bellow is created by the commands commented above. We do this to avoid having to import pyjwt
+
+        # pylint: disable=line-too-long
+        token = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJrZXkxIjoidmFsdWUxIiwia2V5MiI6InZcdTAzYjFsdWUyIn0.DxmqDCAnDlDRWmkqqWIUeGiRPeW7DacUPxvS6x9lZb4'
         requests.get(self.url, auth=auth.SuppliedJwtAuth(token))
         self.assertEqual(responses.calls[0].request.headers['Authorization'], f'JWT {token}')

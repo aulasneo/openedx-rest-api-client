@@ -2,7 +2,7 @@ import json
 from typing import List
 from urllib.parse import urljoin, urlparse, parse_qs
 
-from edx_rest_api_client.session import OAuthAPISession
+from openedx_rest_api_client.session import OAuthAPISession
 
 # URLs
 
@@ -68,7 +68,8 @@ class OpenedxRESTAPIClient:
 
         Args:
             base_url: url of the LMS. Must include the schema (https:// or http://)
-            client_id, client_secret: authentication keys. Created in <lms base url>/admin/oauth2/client/
+            client_id: Client Id. Created in <lms base url>/admin/oauth2/client/
+            client_secret: Client secret for the client Id.
             bearer: If True, it will request a bearer token. Otherwise it will request a jwt token.
             **kwargs: are passed to :class:`session.OAuthAPISession`
 

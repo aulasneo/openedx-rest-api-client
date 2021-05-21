@@ -8,8 +8,8 @@ import responses
 
 from freezegun import freeze_time
 
-from edx_rest_api_client.session import OAuthAPISession
-from edx_rest_api_client.tests.mixins import AuthenticationTestMixin
+from openedx_rest_api_client.session import OAuthAPISession
+from openedx_rest_api_client.tests.mixins import AuthenticationTestMixin
 
 URL = 'http://example.com/api/v2'
 OAUTH_URL = "http://test-auth.com/oauth2/access_token"
@@ -91,7 +91,7 @@ class OAuthAPIClientTests(AuthenticationTestMixin, TestCase):
             response = client_session.post(self.base_url + '/endpoint', data={'test': 'ok'})
             self.assertEqual(client_session.auth.token, 'cred2')
 
-    @mock.patch('edx_rest_api_client.session.requests.post')
+    @mock.patch('openedx_rest_api_client.session.requests.post')
     def test_access_token_request_timeout_wiring2(self, mock_access_token_post):
         mock_access_token_post.return_value.json.return_value = {'access_token': 'token', 'expires_in': 1000}
 

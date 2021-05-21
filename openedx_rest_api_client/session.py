@@ -4,10 +4,10 @@ import socket
 import requests
 import requests.utils
 
-from edx_rest_api_client.auth import SuppliedJwtAuth, BearerAuth
-from edx_rest_api_client.cached_token import CachedToken
+from openedx_rest_api_client.auth import SuppliedJwtAuth, BearerAuth
+from openedx_rest_api_client.cached_token import CachedToken
 
-from edx_rest_api_client.__version__ import __version__
+from openedx_rest_api_client.__version__ import __version__
 
 # How long should we wait to connect to the auth service.
 # https://requests.readthedocs.io/en/master/user/advanced/#timeouts
