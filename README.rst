@@ -1,66 +1,153 @@
-edX REST API Client  |CI|_ |Codecov|_
-=========================================
-.. |CI| image:: https://github.com/edx/edx-rest-api-client/workflows/Python%20CI/badge.svg?branch=master
-.. _CI: https://github.com/edx/edx-rest-api-client/actions?query=workflow%3A%22Python+CI%22
+REST API Client for Open edX |CI|_ |Codecov|_
+=============================================
+.. |CI| image:: https://github.com/aulasneo/openedx-api-client/workflows/Python%20CI/badge.svg?branch=master
+.. _CI: https://github.com/aulasneo/openedx-rest-api-client/actions?query=workflow%3A%22Python+CI%22
 
-.. |Codecov| image:: https://codecov.io/github/edx/edx-rest-api-client/coverage.svg?branch=master
-.. _Codecov: https://codecov.io/github/edx/edx-rest-api-client?branch=master
+.. |Codecov| image:: https://codecov.io/github/aulasneo/openedx-api-client/coverage.svg?branch=master
+.. _Codecov: https://codecov.io/github/aulasneo/openedx-rest-api-client?branch=master
 
-The edX REST API Client (henceforth, client) allows users to communicate with various edX REST APIs, including the `E-Commerce Service`_ and the `Programs Service`_.
+The REST API client for Open edX REST API allows users to communicate with various edX REST APIs.
+It is based on https://github.com/edx/edx-rest-api-client, whith a few differences:
 
-.. _E-Commerce Service: https://github.com/edx/ecommerce
-.. _Programs Service: https://github.com/edx/programs
+- It does not depend on Django
+- What is called 'the client' in edX's version is now called 'session'.
+- As the edX's version relies on Django's cache, now the token is stored in memory under the scope of the session object
+- The client here encompasses the session, and one function per REST API entry point
+
+Part of the code is also taken from Opencraft's `implementation of the openedx client`_.
+
+.. _implementation of the openedx client: https://gist.github.com/bradenmacdonald/930c7655dca32dc648af9cb0aed4a7c5
+
 
 Testing
 -------
     $ make validate
 
 
-Clients & REST API Clients code
--------------------------------
-
-Open edX services, including LMS, should use the OAuthAPIClient class to make OAuth2 client requests and REST API calls.
-
 Usage
 ~~~~~
 
-By default the ``OAuthAPIClient`` object can be used like any `requests.Session`_ object and you can follow the docs that the requests library provides.
-
-The ``OAuthAPIClient`` sessions makes some extra requests to get access tokens from the auth endpoints.  These requests have a default timeout that can be overridden by passing in a ``timeout`` parameter when instantiating the ``OAuthAPIClient`` object.
+The ``OpenedxRESTAPIClient`` object starts a session with the LMS and provides methods to access the Open edX endpoints.
 
 .. code-block:: python
 
-    # create client with default timeouts for token retrieval
-    client = OAuthAPIClient('https://lms.root', 'client_id', 'client_secret')
+    # create client
+    client = OpenedxRESTAPIClient('https://lms.example.com', 'client_id', 'client_secret')
 
-    # create client, overriding default timeouts for token retrieval
-    client = OAuthAPIClient('https://lms.root', 'client_id', 'client_secret', timeout=(6.1, 2))
-    client = OAuthAPIClient('https://lms.root', 'client_id', 'client_secret',
-         timeout=(REQUEST_CONNECT_TIMEOUT, 3)
-    )
+    # get a list of all courses
+    courses = client.list_all_courses()
 
-    # for a request to some.url, a separate timeout should always be set on your requests
-    client.get('https://some.url', timeout=(3.1, 0.5))
+Function Reference
+------------------
 
-The value of the ``timeout`` setting is the same as for any request made with the ``requests`` library.  See the `Requests timeouts documentation`_ for more details.
+list_all_courses
+~~~~~~~~~~~~~~~~
+Get the full list of courses visible to the requesting user.
+Calls the /api/courses/v1/courses LMS endpoint
 
-.. _requests.Session: https://requests.readthedocs.io/en/master/user/advanced/#session-objects
-.. _Requests timeouts documentation: https://requests.readthedocs.io/en/master/user/advanced/#timeouts
+Args:
 
-Additional Requirements
------------------------
+- org: filter by organization
 
-The OAuthAPIClient uses the TieredCache internally for caching.  Read more about the `requirements of TieredCache`_, which include Django caching and some custom middleware.
+Returns:
 
-.. _requirements of TieredCache: https://github.com/edx/edx-django-utils/blob/master/edx_django_utils/cache/README.rst#tieredcache
+- List of dict in the form:
+
+.. code-block::
+
+        [
+           {
+              "blocks_url": "https://lms.example.com/api/courses/v1/blocks/?course_id=course-v1%3A<org>%2B<code>%2B<edition>",
+              "effort":"01:00",
+              "end":"None",
+              "enrollment_start":"None",
+              "enrollment_end":"None",
+              "id":"course-v1:<org>+<code>+<run>",
+              "media":{
+                 "course_image":{
+                    "uri":"<img path>"
+                 },
+                 "course_video":{
+                    "uri":"None"
+                 },
+                 "image":{
+                    "raw":"<img url>",
+                    "small":"<img url>",
+                    "large":"<img url>"
+                 }
+              },
+              "name":"Course name",
+              "number":"<edition>",
+              "org":"<org>",
+              "short_description":"",
+              "start":"2018-01-11T00:00:00Z",
+              "start_display":"11 de Enero de 2018",
+              "start_type":"timestamp",
+              "pacing":"instructor",
+              "mobile_available":true,
+              "hidden":false,
+              "invitation_only":false,
+              "course_id":"course-v1:<org>+<code>+<edition>"
+           },
+           ...
+        ]
+
+change_enrollment
+~~~~~~~~~~~~~~~~~
+
+Enroll or unenroll (depending on the value of action) the list of emails in the list of courses.
+Calls the /api/bulk_enroll/v1/bulk_enroll/ LMS endpoint
+
+Args:
+
+- emails: list of emails to enroll
+- courses: list of course ids to enroll
+- action: can be 'enroll' or 'unenroll'
+- url: url of the LMS (base or site). If not specified, uses the base url of the session. Defaults to the LMS base.
+- auto_enroll: if true, the users will be automatically enrolled as soon as they register. Defaults to true.
+- email_students: if true, an email will be sent with the update. Defaults to true.
+- cohorts: List of cohort names to add the students to.
+
+Returns:
+
+dict in the form:
+
+.. code-block::
+
+    {
+       "action":"enroll",
+       "courses":{
+          "course-v1:ORG+CODE+EDITION":{
+             "action":"enroll",
+             "results":[
+                {
+                   "identifier":"mail@example.com",
+                   "after":{
+                      "enrollment":true,
+                      "allowed":false,
+                      "user":true,
+                      "auto_enroll":false
+                   },
+                   "before":{
+                      "enrollment":false,
+                      "allowed":false,
+                      "user":true,
+                      "auto_enroll":false
+                   }
+                },
+                ...
+             ],
+             "auto_enroll":true
+          },
+          ...
+       },
+       "email_students":true,
+       "auto_enroll":true
+    }
 
 How to Contribute
 -----------------
 
-Contributions are very welcome, but for legal reasons, you must submit a signed
-`individual contributor's agreement`_ before we can accept your contribution. See our
-`CONTRIBUTING`_ file for more information -- it also contains guidelines for how to maintain
-high code quality, which will make your contribution more likely to be accepted.
+To contribute, please send a message to `andres@aulasneo.com`_
 
-.. _individual contributor's agreement: http://code.edx.org/individual-contributor-agreement.pdf
-.. _CONTRIBUTING: https://github.com/edx/edx-platform/blob/master/CONTRIBUTING.rst
+.. _andres@aulasneo.com: mailto:andres@aulasneo.com
