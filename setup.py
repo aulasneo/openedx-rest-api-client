@@ -48,7 +48,7 @@ setup(
         'Environment :: Web Environment',
     ],
     keywords='openedx rest api client',
-    url='https://github.com/edx/edx-rest-api-client',
+    url='https://github.com/aulasneo/openedx-rest-api-client',
     author='Aulasneo',
     author_email='andres@aulasneo.com',
     license='Apache',
