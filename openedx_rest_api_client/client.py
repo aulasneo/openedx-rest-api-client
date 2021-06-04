@@ -81,7 +81,12 @@ class OpenedxRESTAPIClient:
                                        bearer,
                                        **kwargs)
 
-    def list_all_courses(self, org: str = None) -> List[dict]:
+    def list_all_courses(self,
+                         org: str = None,
+                         username: str = None,
+                         search_term: str = None,
+                         **kwargs
+                         ) -> List[dict]:
         # pylint: disable=line-too-long
         """
         Get the full list of courses visible to the requesting user.
@@ -89,6 +94,11 @@ class OpenedxRESTAPIClient:
 
         Args:
             org: filter by organization
+            username: The name of the user the logged-in user would like to be identified as
+            search_term: Search term to filter courses (used by ElasticSearch).
+                ENABLE_COURSEWARE_SEARCH feature must be enabled in LMS.
+            kwargs: If specified, visible `CourseOverview` objects are filtered by the given key-value pairs.
+                Not all fields are supported for filtering. See https://github.com/edx/edx-platform/blob/fb8b03178cce836186fc74e17c010cae99738d23/lms/djangoapps/course_api/forms.py#L48
 
         Returns:
             List of dict in the form:
@@ -131,9 +141,9 @@ class OpenedxRESTAPIClient:
 
         """
 
-        def _get_courses(url, params=None):
+        def _get_courses(url, params_=None):
             """ Recursively load all pages of course data. """
-            response = self.session.get(urljoin(url, URL_COURSES_LIST), params=params)
+            response = self.session.get(urljoin(url, URL_COURSES_LIST), params=params_)
             response.raise_for_status()
 
             data = response.json()
@@ -145,7 +155,15 @@ class OpenedxRESTAPIClient:
 
             return results
 
-        params = {"org": org} if org else None
+        params = {}
+        if org:
+            params['org'] = org
+        if username:
+            params['username'] = username
+        if kwargs:
+            params['filter_'] = str(kwargs)
+        if search_term:
+            params['search_term'] = search_term
         course_list = _get_courses(self._base_url, params)
 
         return course_list
