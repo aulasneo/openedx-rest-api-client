@@ -39,7 +39,7 @@ COURSE_LIST_CACHE_KEY = 'course-list:{username}:{org}'
 URL_ENROLLMENT_BASE = '/api/enrollment/v1/'
 URL_ENROLLMENT_ROLES = URL_ENROLLMENT_BASE + 'roles/'
 
-URL_BULKENROLL = '/api/bulk_enroll/v1/bulk_enroll/'
+URL_BULKENROLL = '/api/bulk_enroll/v1/bulk_enroll'
 
 
 class OpenedxRESTAPIClient:
