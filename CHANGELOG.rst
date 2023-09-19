@@ -1,7 +1,7 @@
 Change Log
 ##########
 
-Unreleased
+Version 0.1.0 (2023-09-19)
 **********************************************
 
 * Feat: Add account registration and registration validation API calls
