@@ -1,6 +1,11 @@
 Change Log
 ##########
 
+Unreleased
+**********************************************
+
+* Fix: Fix error in logging unsuccessful responses
+
 Version 0.1.0 (2023-09-19)
 **********************************************
 
