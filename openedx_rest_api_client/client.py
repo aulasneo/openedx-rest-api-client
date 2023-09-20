@@ -113,7 +113,7 @@ class OpenedxRESTAPIClient:
         )
         if response.status_code != 200:
             logger.error(f"Error {response.status_code} in post form to {endpoint} with params {json.dumps(params)}: "
-                         f"{response.text()}")
+                         f"{response.text}")
 
         return response
 
@@ -135,7 +135,7 @@ class OpenedxRESTAPIClient:
         )
         if response.status_code != 200:
             logger.error(f"Error {response.status_code} in post json to {endpoint} with params {json.dumps(params)}: "
-                         f"{response.text()}")
+                         f"{response.text}")
 
         return response
 
