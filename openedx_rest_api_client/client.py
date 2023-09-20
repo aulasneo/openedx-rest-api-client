@@ -297,7 +297,13 @@ class OpenedxRESTAPIClient:
 
         response = self._post_json(path=URL_BULKENROLL, params=data, url=url)
 
-        return response.json()
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return {
+                'status_code': response.status_code,
+                'response': response.text
+            }
 
     def register_account(self,
                          email: str,
