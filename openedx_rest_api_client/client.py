@@ -315,6 +315,7 @@ class OpenedxRESTAPIClient:
                          ) -> dict:
         """
         Registers a new user account. Calls the `/api/user/v1/account/registration/` API endpoint.
+        View handling the API request: https://github.com/openedx/edx-platform/blob/46bd8fb12fef49d67a0dc531416ed153f3414cfb/openedx/core/djangoapps/user_authn/views/register.py#L520
 
         Args:
             email: email to register
@@ -385,6 +386,8 @@ class OpenedxRESTAPIClient:
         """
         Validates the account registration form.
 
+        View handling the API request: https://github.com/openedx/edx-platform/blob/46bd8fb12fef49d67a0dc531416ed153f3414cfb/openedx/core/djangoapps/user_authn/views/register.py#L703
+
         Args:
             url: url of the LMS (base or site). If not specified, uses the base url of the session.
                 Defaults to the LMS base.
@@ -407,6 +410,8 @@ class OpenedxRESTAPIClient:
                 },
                 'username_suggestions': [<username suggestions * 3>]
             }
+
+            Handled by openedx.core.djangoapps.user_authn.views.register.RegistrationValidationView
 
         """
         response = self._post_json(path=URL_VALIDATION_REGISTRATION, params=kwargs, url=url)
