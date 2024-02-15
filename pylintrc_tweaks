@@ -1,8 +1,0 @@
-[MASTER]
-load-plugins = edx_lint.pylint
-
-[MESSAGES CONTROL]
-DISABLE+= ,missing-docstring
-
-[TYPECHECK]
-ignored-classes+= ,responses

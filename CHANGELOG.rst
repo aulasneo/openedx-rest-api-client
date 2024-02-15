@@ -1,6 +1,11 @@
 Change Log
 ##########
 
+Unreleased
+**********
+
+* Remove unused github actions and tests.
+
 Version 0.1.3 (2023-09-20)
 **********************************************
 

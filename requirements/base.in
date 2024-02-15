@@ -1,6 +1,6 @@
-# Core requirements for using this package template
--c constraints.txt
-
-requests~=2.25.1
-setuptools~=56.2.0
-responses~=0.13.3
+DateTime==5.4
+idna==3.6
+logging==0.4.9.6
+requests==2.31.0
+requests-toolbelt==1.0.0
+urllib3==2.2.0
