@@ -61,5 +61,5 @@ setup(
     author_email='andres@aulasneo.com',
     license='Apache',
     packages=find_packages(exclude=['*.tests']),
-    install_requires=load_requirements('requirements/base.in'),
+    install_requires=load_requirements('requirements.txt'),
 )

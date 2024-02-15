@@ -1,7 +1,7 @@
 Change Log
 ##########
 
-Unreleased
+Version 0.2.0 (2024-02-15)
 **********
 
 * Remove unused github actions and tests.
