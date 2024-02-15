@@ -145,6 +145,107 @@ dict in the form:
        "auto_enroll":true
     }
 
+Account validation
+~~~~~~~~~~~~~~~~~~
+
+Validates the account registration form. Calls the `/api/user/v1/validation/registration` API endpoint.
+
+Args:
+
+* url: url of the LMS (base or site). If not specified, uses the base url of the session. Defaults to the LMS base.
+* \*\*kwargs: dict with form parameters to validate. E.g.:
+
+.. code-block::
+
+    {
+        email=<email>,
+        username=<username>,
+        name=<name>,
+        password=<password>,
+        honor_code=<honor_code>,
+        terms_of_service=<terms_of_service>,
+    }
+
+Returns:
+dict in the form:
+
+.. code-block::
+
+    {
+        'validation_decisions': {
+            <field name>: <validation result, or empty if success>,
+            ...
+        },
+        'username_suggestions': [<username suggestions * 3>]
+    }
+
+
+Account registration
+~~~~~~~~~~~~~~~~~~~~
+
+Registers a new user account. Calls the `/api/user/v1/account/registration/` API endpoint.
+
+Args:
+
+* email: email to register
+* username: username to register
+* name: full name of the user
+* password: password
+* url: url of the LMS (base or site). If not specified, uses the base url of the session.
+        Defaults to the LMS base.
+
+Additional default fields accepted:
+
+* name: full name of the user
+* level_of_education \*: one of:
+    * 'p': 'Doctorate'
+    * 'm': "Master's or professional degree"
+    * 'b': "Bachelor's degree"
+    * 'a': "Associate degree"
+    * 'hs': "Secondary/high school"
+    * 'jhs': "Junior secondary/junior high/middle school"
+    * 'el': "Elementary/primary school"
+    * 'none': "No formal education"
+    * 'other': "Other education"
+* gender \*: can be 'm', 'f', or 'o'
+* mailing_address *
+* city *
+* country: ISO3166-1 two letters country codes as used in django_countries.countries *
+* goals *
+* year_of_birth \*: numeric 4-digit year of birth
+* honor_code \*: Bool. If mandatory and not set will not create the account.
+* terms_of_service \*: Bool. If unset, will be set equally to honor_code
+* marketing_emails_opt_in \*: Bool. If set, will add a is_marketable user attribute (see Student > User Attributes in Django admin)
+* provider: Oauth2 provider information
+* social_auth_provider: Oauth2 provider information
+
+\* Can be set as hidden, optional or mandatory in REGISTRATION_EXTRA_FIELDS setting.
+
+
+Returns:
+Dict with the form:
+
+- If successful:
+
+.. code-block::
+
+    {
+        'success': True,
+        'redirect_url': <redirection url to finish the authorization and go to the dashboard>
+    }
+
+- If error:
+
+.. code-block::
+
+    {
+        <field name>: [
+            {'user_message': <error message>}
+        ]
+        'error_code': <error code>,
+        'username_suggestions': [<username suggestions> * 3]
+    }
+
 How to Contribute
 -----------------
 

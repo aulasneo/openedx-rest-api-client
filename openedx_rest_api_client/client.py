@@ -1,9 +1,14 @@
 import json
+import logging
+import requests.exceptions
+
 from typing import List
 from urllib.parse import urljoin, urlparse, parse_qs
+from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 from openedx_rest_api_client.session import OAuthAPISession
 
+logger = logging.getLogger(__name__)
 # URLs
 
 URL_LIB_PREFIX = '/api/libraries/v2/'
@@ -40,6 +45,8 @@ URL_ENROLLMENT_BASE = '/api/enrollment/v1/'
 URL_ENROLLMENT_ROLES = URL_ENROLLMENT_BASE + 'roles/'
 
 URL_BULKENROLL = '/api/bulk_enroll/v1/bulk_enroll'
+URL_VALIDATION_REGISTRATION = '/api/user/v1/validation/registration'
+URL_ACCOUNT_REGISTRATION = '/api/user/v1/account/registration/'
 
 URL_COURSE_GRADES = '/api/grades/v1/courses/{course_id}/'
 
@@ -82,6 +89,57 @@ class OpenedxRESTAPIClient:
                                        timeout,
                                        bearer,
                                        **kwargs)
+
+    def _post_form(self, path:str, params:dict, url:str=None) -> requests.Response:
+        """
+        Sends a post with form encoding.
+        Args:
+            path: path of the API endpoint.
+            params: dict with data to post.
+            url: base url. If empty, will take the base url.
+
+        Returns:
+            response
+        """
+        data = MultipartEncoder(fields=params)
+
+        headers = {
+            'Content-Type': data.content_type
+        }
+
+        endpoint = urljoin(url if url else self._base_url, path)
+        response = self.session.post(
+            headers=headers,
+            url=endpoint,
+            data=data,
+        )
+        if response.status_code != 200:
+            logger.error(f"Error {response.status_code} in post form to {endpoint} with params {json.dumps(params)}: "
+                         f"{response.text}")
+
+        return response
+
+    def _post_json(self, path: str, params: dict, url: str = None) -> requests.Response:
+        """
+        Sends a post with json encoding.
+        Args:
+            path: path of the API endpoint.
+            params: dict with data to post.
+            url: base url. If empty, will take the base url.
+
+        Returns:
+            response
+        """
+        endpoint = urljoin(url if url else self._base_url, path)
+        response = self.session.post(
+            url=endpoint,
+            json=params,
+        )
+        if response.status_code != 200:
+            logger.error(f"Error {response.status_code} in post json to {endpoint} with params {json.dumps(params)}: "
+                         f"{response.text}")
+
+        return response
 
     def list_all_courses(self,
                          org: str = None,
@@ -194,6 +252,9 @@ class OpenedxRESTAPIClient:
 
         Returns:
             dict in the form:
+            - If the course does not exist:
+            { 'detail': 'Not found' }
+            - If successful:
             {
                "action":"enroll",
                "courses":{
@@ -236,11 +297,90 @@ class OpenedxRESTAPIClient:
         if cohorts:
             data['cohorts'] = ','.join(cohorts)
 
-        response = self.session.post(
-            url=urljoin(url if url else self._base_url, URL_BULKENROLL),
-            data=json.dumps(data),
-        )
-        response.raise_for_status()
+        response = self._post_json(path=URL_BULKENROLL, params=data, url=url)
+
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return {
+                'status_code': response.status_code,
+                'response': response.text
+            }
+
+    def register_account(self,
+                         email: str,
+                         username: str,
+                         name: str,
+                         password: str,
+                         url: str = None,
+                         **kwargs
+                         ) -> dict:
+        """
+        Registers a new user account. Calls the `/api/user/v1/account/registration/` API endpoint.
+        View handling the API request: https://github.com/openedx/edx-platform/blob/46bd8fb12fef49d67a0dc531416ed153f3414cfb/openedx/core/djangoapps/user_authn/views/register.py#L520
+
+        Args:
+            email: email to register
+            username: username to register
+            name: full name of the user
+            password: password
+            url: url of the LMS (base or site). If not specified, uses the base url of the session.
+                Defaults to the LMS base.
+
+        Additional default fields accepted:
+            name: full name of the user
+            level_of_education *: can be:
+                'p': 'Doctorate'
+                'm': "Master's or professional degree"
+                'b': "Bachelor's degree"
+                'a': "Associate degree"
+                'hs': "Secondary/high school"
+                'jhs': "Junior secondary/junior high/middle school"
+                'el': "Elementary/primary school"
+                'none': "No formal education"
+                'other': "Other education"
+            gender *: can be 'm', 'f', or 'o'
+            mailing_address *
+            city *
+            country: ISO3166-1 two letters country codes as used in django_countries.countries *
+            goals *
+            year_of_birth *: numeric 4-digit year of birth
+            honor_code *: Bool. If mandatory and not set will not create the account.
+            terms_of_service *: Bool. If unset, will be set equally to honor_code
+            marketing_emails_opt_in *: Bool. If set, will add a is_marketable user attribute (see Student > User Attributes in Django admin)
+            provider: Oauth2 provider information
+            social_auth_provider: Oauth2 provider information
+
+            * Can be set as hidden, optional or mandatory in REGISTRATION_EXTRA_FIELDS setting.
+
+
+        Returns:
+            Dict with the form:
+            - If successful:
+            {
+                'success': True,
+                'redirect_url': <redirection url to finish the authorization and go to the dashboard>
+            }
+            - If error:
+            {
+                <field name>: [
+                    {'user_message': <error message>}
+                ]
+                'error_code': <error code>,
+                'username_suggestions': [<username suggestions> * 3]
+            }
+        """
+
+        params = {
+            "email": email,
+            "username": username,
+            "name": name,
+            "password": password,
+        }
+
+        params.update(kwargs)
+
+        response = self._post_form(path=URL_ACCOUNT_REGISTRATION, url=url, params=params)
 
         return response.json()
 
@@ -263,3 +403,39 @@ class OpenedxRESTAPIClient:
             params['username'] = username
 
         return _get_course_grades(self._base_url, course_id, params)
+
+    def validation_registration(self, url: str = None, **kwargs) -> dict:
+        """
+        Validates the account registration form.
+
+        View handling the API request: https://github.com/openedx/edx-platform/blob/46bd8fb12fef49d67a0dc531416ed153f3414cfb/openedx/core/djangoapps/user_authn/views/register.py#L703
+
+        Args:
+            url: url of the LMS (base or site). If not specified, uses the base url of the session.
+                Defaults to the LMS base.
+            **kwargs: dict with form parameters to validate. E.g.:
+                    {
+                        email=<email>,
+                        username=<username>,
+                        name=<name>,
+                        password=<password>,
+                        honor_code=<honor_code>,
+                        terms_of_service=<terms_of_service>,
+                    }
+
+        Returns:
+            dict in the form:
+            {
+                'validation_decisions': {
+                    <field name>: <validation result, or empty if success>,
+                    ...
+                },
+                'username_suggestions': [<username suggestions * 3>]
+            }
+
+            Handled by openedx.core.djangoapps.user_authn.views.register.RegistrationValidationView
+
+        """
+        response = self._post_json(path=URL_VALIDATION_REGISTRATION, params=kwargs, url=url)
+
+        return response.json()

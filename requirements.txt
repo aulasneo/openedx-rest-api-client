@@ -1,0 +1,6 @@
+DateTime==5.4
+idna==3.6
+logging==0.4.9.6
+requests==2.31.0
+requests-toolbelt==1.0.0
+urllib3==2.2.0

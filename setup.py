@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 """ Setup to allow pip installs of edx-rest-api-client module """
 
+import io
+import os
+
+HERE = os.path.abspath(os.path.dirname(__file__))
+
 from setuptools import setup, find_packages
 
 from openedx_rest_api_client import __version__
@@ -16,7 +21,10 @@ def load_requirements(*requirements_paths):
     """
     requirements = set()
     for path in requirements_paths:
-        with open(path) as reqs:
+        # with open(path, 'w') as f:
+        #     f.write('test')
+
+        with io.open(os.path.join(HERE, path)) as reqs:
             requirements.update(
                 line.split('#')[0].strip() for line in reqs
                 if is_requirement(line.strip())
@@ -53,5 +61,5 @@ setup(
     author_email='andres@aulasneo.com',
     license='Apache',
     packages=find_packages(exclude=['*.tests']),
-    install_requires=load_requirements('requirements/base.in'),
+    install_requires=load_requirements('requirements.txt'),
 )
