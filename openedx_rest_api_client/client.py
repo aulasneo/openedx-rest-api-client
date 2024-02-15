@@ -48,6 +48,8 @@ URL_BULKENROLL = '/api/bulk_enroll/v1/bulk_enroll'
 URL_VALIDATION_REGISTRATION = '/api/user/v1/validation/registration'
 URL_ACCOUNT_REGISTRATION = '/api/user/v1/account/registration/'
 
+URL_COURSE_GRADES = '/api/grades/v1/courses/{course_id}/'
+
 
 class OpenedxRESTAPIClient:
     """ A client to access Open edX REST API endpoints.
@@ -381,6 +383,26 @@ class OpenedxRESTAPIClient:
         response = self._post_form(path=URL_ACCOUNT_REGISTRATION, url=url, params=params)
 
         return response.json()
+
+    def get_course_grades(self, course_id, username=None) -> List[dict]:
+        def _get_course_grades(url, _course_id, _params=None):
+            """ Recursively load all grades for a course. """
+            response = self.session.get(urljoin(url, URL_COURSE_GRADES.format(course_id=_course_id)), params=_params)
+            response.raise_for_status()
+            data = response.json()
+            if isinstance(data, dict):
+                results = data.get('results', [])
+                if next_page_url := data.get('next'):
+                    results += _get_course_grades(next_page_url, _course_id, parse_qs(urlparse(next_page_url).query))
+            else:
+                results = data
+            return results
+
+        params = {}
+        if username:
+            params['username'] = username
+
+        return _get_course_grades(self._base_url, course_id, params)
 
     def validation_registration(self, url: str = None, **kwargs) -> dict:
         """
