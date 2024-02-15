@@ -1,7 +1,7 @@
 Change Log
 ##########
 
-Unreleased
+Version 0.3.1 (2024-02-15)
 **********
 
 * Add get_course_grades endpoint (/api/grades/v1/courses/{course_id}/)
