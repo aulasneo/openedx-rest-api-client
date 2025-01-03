@@ -1,7 +1,7 @@
 Change Log
 ##########
 
-Unreleased
+Version 1.0.0 (2025-01-03)
 **********
 
 * Update requirements for python 3.11
