@@ -1,6 +1,11 @@
 Change Log
 ##########
 
+Unreleased
+**********
+
+* Update requirements for python 3.11
+
 Version 0.3.1 (2024-02-15)
 **********
 

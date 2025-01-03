@@ -31,8 +31,14 @@ The ``OpenedxRESTAPIClient`` object starts a session with the LMS and provides m
 
 .. code-block:: python
 
+    from openedx_rest_api_client.client import OpenedxRESTAPIClient
+  
+    client_id = 'my_client_id'
+    client_secret = 'my_client_secret'
+    lms_url = 'https://lms.example.com'
+
     # create client
-    client = OpenedxRESTAPIClient('https://lms.example.com', 'client_id', 'client_secret')
+    client = OpenedxRESTAPIClient(lms_url, client_id, client_secret)
 
     # get a list of all courses
     courses = client.list_all_courses()
