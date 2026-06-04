@@ -1,0 +1,29 @@
+.github/workflows/publish.yml
+  s_a063adc4b298bf::t_045235a625cc7d 30-38
+openedx_rest_api_client/client.py
+  s_a063adc4b298bf::t_03d715dcb171f5 305-308
+  s_a063adc4b298bf::t_fc57a675399756 6-7
+.pylintrc
+  s_a063adc4b298bf::t_cf2c6e6f286743 7-10
+  s_a063adc4b298bf::t_410b026edcfbd0 27
+Makefile
+  s_a063adc4b298bf::t_7f8bcb1bcff305 1-18
+CHANGELOG.md
+  s_a063adc4b298bf::t_ffa9b59d3db88d 1-30
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "328fbacf0a71ea375e18bc99a639ff91a5f09cd0",
+  "prompts": {},
+  "sessions": {
+    "s_a063adc4b298bf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "56336c07-1017-45a1-94c3-5d0220daf5b8",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Andrés González <andres@aulasneo.com>"
+    }
+  }
+}
