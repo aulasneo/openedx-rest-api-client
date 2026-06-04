@@ -1,6 +1,6 @@
 # Change Log
 
-## Unreleased
+## Version 1.0.1 (2026-06-04)
 * chore: upgrade dependencies
 * tests: Add unit and style tests
 * ci: added workflows
