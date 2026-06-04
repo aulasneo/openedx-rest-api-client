@@ -1,9 +1,10 @@
 import json
 import logging
-import requests.exceptions
 
 from typing import List
 from urllib.parse import urljoin, urlparse, parse_qs
+
+import requests.exceptions
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 from openedx_rest_api_client.session import OAuthAPISession
@@ -301,11 +302,10 @@ class OpenedxRESTAPIClient:
 
         if response.status_code == 200:
             return response.json()
-        else:
-            return {
-                'status_code': response.status_code,
-                'response': response.text
-            }
+        return {
+            'status_code': response.status_code,
+            'response': response.text
+        }
 
     def register_account(self,
                          email: str,

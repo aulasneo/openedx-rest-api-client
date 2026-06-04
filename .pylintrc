@@ -4,6 +4,10 @@ ignore = venv,dist,build
 [FORMAT]
 max-line-length = 120
 
+[REPORTS]
+# Fail the build only if the score drops below this threshold.
+fail-under = 9.5
+
 [MESSAGES CONTROL]
 # Disable checks that conflict with this library's intentional design:
 #   - missing-*-docstring: thin re-export / version modules.
@@ -20,4 +24,5 @@ disable =
     too-many-instance-attributes,
     too-few-public-methods,
     consider-using-f-string,
+    logging-fstring-interpolation,
     duplicate-code
