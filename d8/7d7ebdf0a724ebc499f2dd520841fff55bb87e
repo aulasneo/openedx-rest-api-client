@@ -1,0 +1,40 @@
+requirements.txt
+  s_a063adc4b298bf::t_a7e827bdeccabf 19
+openedx_rest_api_client/client.py
+  s_a063adc4b298bf::t_5866f6445d0ed9 93
+openedx_rest_api_client/session.py
+  s_a063adc4b298bf::t_46bcc374f98a08 32
+requirements-test.txt
+  s_a063adc4b298bf::t_9ca6878c01eb69 1-8
+tests/test_session.py
+  s_a063adc4b298bf::t_68e0dfd8255803 1-116
+tests/test_client.py
+  s_a063adc4b298bf::t_f4330676a3c4a3 1-280
+.pylintrc
+  s_a063adc4b298bf::t_4657465495fcff 1-23
+tests/test_cached_token.py
+  s_a063adc4b298bf::t_57561175de5764 1-209
+tests/test_auth.py
+  s_a063adc4b298bf::t_6b120045b05cb4 38
+  s_a063adc4b298bf::t_ba1bb5fe6f1a52 8-11,14
+  s_a063adc4b298bf::t_d8cb9745b68734 1-7,12-13,15-37,39-48
+setup.cfg
+  s_a063adc4b298bf::t_0a37695cbaff00 14-21
+  s_a063adc4b298bf::t_c0139ac2587aa4 1-13
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "d87d7ebdf0a724ebc499f2dd520841fff55bb87e",
+  "prompts": {},
+  "sessions": {
+    "s_a063adc4b298bf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "56336c07-1017-45a1-94c3-5d0220daf5b8",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "Andrés González <andres@aulasneo.com>"
+    }
+  }
+}
