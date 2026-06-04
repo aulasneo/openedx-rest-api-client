@@ -90,7 +90,7 @@ class OpenedxRESTAPIClient:
                                        bearer,
                                        **kwargs)
 
-    def _post_form(self, path:str, params:dict, url:str=None) -> requests.Response:
+    def _post_form(self, path: str, params: dict, url: str = None) -> requests.Response:
         """
         Sends a post with form encoding.
         Args:

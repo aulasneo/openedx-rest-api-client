@@ -1,0 +1,8 @@
+# Development/test dependencies. Install with:
+#   pip install -r requirements-test.txt
+-r requirements.txt
+pytest
+pytest-cov
+responses
+flake8
+pylint

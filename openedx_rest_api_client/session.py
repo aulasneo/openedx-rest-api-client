@@ -29,7 +29,7 @@ def user_agent():
     client_name = 'unknown_client_name'
     try:
         client_name = os.environ.get("EDX_REST_API_CLIENT_NAME") or socket.gethostbyname(socket.gethostname())
-    except:  # pylint: disable=bare-except
+    except:  # noqa: E722  # pylint: disable=bare-except
         pass  # using 'unknown_client_name' is good enough.  no need to log.
     return "{} edx-rest-api-client/{} {}".format(
         requests.utils.default_user_agent(),  # e.g. "python-requests/2.9.1"

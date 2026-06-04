@@ -4,17 +4,17 @@
 #
 #    pip-compile
 #
-certifi==2024.12.14
+certifi==2026.5.20
     # via requests
-charset-normalizer==3.4.1
+charset-normalizer==3.4.7
     # via requests
-idna==3.10
+idna==3.18
     # via requests
-requests==2.32.3
+requests==2.34.2
     # via
     #   -r requirements.in
     #   requests-toolbelt
 requests-toolbelt==1.0.0
     # via -r requirements.in
-urllib3==2.3.0
+urllib3==2.7.0
     # via requests

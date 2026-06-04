@@ -1,0 +1,23 @@
+[MASTER]
+ignore = venv,dist,build
+
+[FORMAT]
+max-line-length = 120
+
+[MESSAGES CONTROL]
+# Disable checks that conflict with this library's intentional design:
+#   - missing-*-docstring: thin re-export / version modules.
+#   - too-many-*: the OAuth helpers mirror the requests API surface and
+#     intentionally accept many parameters.
+#   - consider-using-f-string: kept for readability of the user-agent string.
+#   - duplicate-code: the test fixtures legitimately repeat response stubs.
+disable =
+    missing-module-docstring,
+    missing-class-docstring,
+    missing-function-docstring,
+    too-many-arguments,
+    too-many-positional-arguments,
+    too-many-instance-attributes,
+    too-few-public-methods,
+    consider-using-f-string,
+    duplicate-code
